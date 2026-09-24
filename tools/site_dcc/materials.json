@@ -1,0 +1,17 @@
+{
+  "pipeline": "Blender 4.2 Principled BSDF → glTF 2.0",
+  "resolution": { "authoring": "procedural (Cycles shading rate)", "bake": [4096, 8192] },
+  "color_space": { "albedo": "sRGB", "data": "linear" },
+  "materials": [
+    {"id": "M_ConcreteFormwork", "roughness": 0.78, "metallic": 0.0, "displacement_m": 0.012, "notes": "form ties, laitance, hairline cracks"},
+    {"id": "M_WetAsphalt", "roughness": [0.12, 0.85], "metallic": 0.02, "notes": "oil + puddle mask"},
+    {"id": "M_RustySteel", "roughness": 0.48, "metallic": [0.15, 0.82], "notes": "vertical rust streaks"},
+    {"id": "M_CatPaint", "roughness": 0.42, "metallic": 0.12, "coat": 0.18, "notes": "dust + chip voronoi"},
+    {"id": "M_Timber", "roughness": 0.72, "anisotropy": 0.15, "notes": "rings 1x8 mapping, knots"},
+    {"id": "M_Brickwork", "roughness": 0.82, "notes": "running bond, uneven mortar"},
+    {"id": "M_DirtGround", "roughness": 0.95, "displacement_m": 0.06, "notes": "triplanar in realtime"},
+    {"id": "M_CabGlass", "roughness": 0.06, "transmission": 0.86, "ior": 1.52},
+    {"id": "M_HiVis", "roughness": 0.62, "sheen": 0.35},
+    {"id": "M_Rubber", "roughness": 0.88, "notes": "tread micro bump"}
+  ]
+}

@@ -1,0 +1,37 @@
+// Unreal Engine 5 — Custom HLSL node for MM_StroySync_Site.
+// Inputs: AlbedoTex, ORMTex (R rough, G metal, B AO), NormalTex, WorldPos, WorldNormal, Tile, BlendPow
+// Outputs: Albedo, Roughness, Metallic, AO, Normal
+
+float3 W = pow(abs(WorldNormal), BlendPow);
+W /= max(W.x + W.y + W.z, 1e-5);
+float2 UVx = WorldPos.zy * Tile;
+float2 UVy = WorldPos.xz * Tile;
+float2 UVz = WorldPos.xy * Tile;
+
+float4 Ax = AlbedoTex.Sample(AlbedoTexSampler, UVx);
+float4 Ay = AlbedoTex.Sample(AlbedoTexSampler, UVy);
+float4 Az = AlbedoTex.Sample(AlbedoTexSampler, UVz);
+Albedo = (Ax * W.x + Ay * W.y + Az * W.z).rgb;
+
+float4 Ox = ORMTex.Sample(ORMTexSampler, UVx);
+float4 Oy = ORMTex.Sample(ORMTexSampler, UVy);
+float4 Oz = ORMTex.Sample(ORMTexSampler, UVz);
+float3 ORM = (Ox * W.x + Oy * W.y + Oz * W.z).rgb;
+Roughness = ORM.r;
+Metallic = ORM.g;
+AO = ORM.b;
+
+float3 Nx = ORMTex.Sample(NormalTexSampler, UVx).xyz * 2 - 1;
+float3 Ny = ORMTex.Sample(NormalTexSampler, UVy).xyz * 2 - 1;
+float3 Nz = ORMTex.Sample(NormalTexSampler, UVz).xyz * 2 - 1;
+Nx = float3(Nx.zy, abs(WorldNormal.x));
+Ny = float3(Ny.xz, abs(WorldNormal.y));
+Nz = float3(Nz.xy, abs(WorldNormal.z));
+Normal = normalize(Nx * W.x + Ny * W.y + Nz * W.z);
+
+// Master material graph (document, recreate in Material Editor):
+//   VertexColor.R * LayerDirt  + VertexColor.G * LayerGravel + VertexColor.B * LayerAsphalt
+//   + DBuffer decals (oil / rust / wet) in Base Color and Roughness
+//   Displacement from M_*_displacement sampled in World Displacement (Tessellation or Runtime Virtual Texture)
+//   Clear Coat 0.18 on M_CatPaint, Transmission 0.86 IOR 1.52 on M_CabGlass
+//   Packed ORM: R roughness, G metallic, B AO. sRGB off on all data maps.

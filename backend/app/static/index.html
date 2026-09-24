@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StroySync — SurveilTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/app.css?v=21" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail">
+        <button class="active" data-view="map" data-tab="live" title="Карта площадки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
+        </button>
+        <button data-view="brief" data-tab="live" title="Сводка">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V7l8-4zm0 6v8"/></svg>
+        </button>
+        <button data-view="setup" data-tab="cameras" title="Камеры">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v10H6V11z"/></svg>
+        </button>
+        <button data-view="brief" data-tab="schedule" title="Персонал / WBS">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-7 9a7 7 0 0 1 14 0"/></svg>
+        </button>
+        <button data-view="notes" title="Obsidian · заметки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l5 5v13H6V3zm9 0v5h5M8 11h8M8 15h8"/></svg>
+        </button>
+        <button data-view="setup" data-tab="history" title="Настройки / лог">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0-5v2m0 14v2M4.2 6.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 17.8l1.4-1.4m12.8-12.8 1.4-1.4"/></svg>
+        </button>
+      </aside>
+
+      <div class="stage" id="twin-hero">
+        <canvas id="twin-canvas"></canvas>
+
+        <header class="hud-top">
+          <div class="brand">
+            <span class="mark" aria-hidden="true"></span>
+            <b>StroySync</b>
+          </div>
+          <nav class="modes">
+            <button data-view="brief">Brief</button>
+            <button class="active" data-view="map">Unit map</button>
+            <button data-view="notes">Notes</button>
+            <button data-view="setup">Setup</button>
+          </nav>
+          <div class="meta">
+            <span>MOSCOW, SITE-01</span>
+            <time id="hud-clock">00:00</time>
+          </div>
+        </header>
+
+        <article class="unit-card">
+          <div class="drone-box">
+            <canvas id="drone-canvas" width="320" height="168"></canvas>
+            <button class="ghost-link" type="button">Details</button>
+          </div>
+          <div class="unit-head">
+            <p><i class="led on"></i> <span id="twin-mode">active</span></p>
+            <h2 id="unit-id">CRN-A-MSK</h2>
+            <p class="unit-kind" id="unit-kind">Башенный кран №1</p>
+          </div>
+          <dl class="meters">
+            <div><dt>Power</dt><dd id="m-power">86%</dd><div class="bar"><i id="m-power-bar" style="width:86%"></i></div></div>
+            <div><dt>Session</dt><dd id="m-session">14HR 10MIN</dd><div class="bar"><i id="m-session-bar" style="width:74%"></i></div></div>
+            <div id="m-signal-row"><dt>Signal</dt><dd id="m-signal">STABLE</dd><div class="bar"><i id="m-signal-bar" style="width:78%"></i></div></div>
+          </dl>
+          <div class="split">
+            <button class="hud-btn" type="button">Performance</button>
+            <button class="hud-btn" type="button">Health</button>
+          </div>
+          <div class="load">
+            <span id="m-load">71%</span>
+            <div class="bar tall"><i id="m-load-bar" style="width:71%"></i></div>
+            <p id="twin-meta">Liebherr 280 EC-H · стрела 62 м</p>
+            <ul id="pick-facts" class="facts"></ul>
+          </div>
+          <p id="twin-title" class="sr">Цифровой двойник площадки</p>
+          <div class="grade" id="twin-grade">—</div>
+          <div class="actions">
+            <label class="hud-btn primary">Собрать 3D
+              <input type="file" multiple accept="image/*,video/*" onchange="uploadTwin(this.files)" />
+            </label>
+            <button class="hud-btn" type="button" onclick="rebuildFromHistory()">Из снимков</button>
+            <button class="hud-btn" type="button" onclick="resetTwin()">Эталон</button>
+            <a class="hud-btn hidden" id="twin-download" download>GLTF</a>
+          </div>
+        </article>
+
+        <div class="zoom">
+          <button type="button" id="zoom-in">+</button>
+          <button type="button" id="zoom-out">−</button>
+        </div>
+
+        <footer class="hud-bottom">
+          <nav class="tabs">
+            <button class="active" data-dock="units">Unit list</button>
+            <button data-dock="stats">Statistics</button>
+            <button data-dock="perf">Performances</button>
+            <button data-dock="over">Overview</button>
+            <button data-dock="msg">Messages</button>
+          </nav>
+          <div class="units" id="unit-strip">
+            <button class="unit on" data-pick="CRN-A-MSK"><i class="led on"></i><span>Active<br><b>CRN-A-MSK</b></span><em>→</em></button>
+            <button class="unit on" data-pick="BLD-A-MSK"><i class="led on"></i><span>Active<br><b>BLD-A-MSK</b></span><em>→</em></button>
+            <button class="unit off" data-pick="BLD-C-MSK"><i class="led warn"></i><span>Warning<br><b>BLD-C-MSK</b></span><em>→</em></button>
+            <button class="unit on" data-pick="EXC-01-MSK"><i class="led on"></i><span>Active<br><b>EXC-01-MSK</b></span><em>→</em></button>
+          </div>
+        </footer>
+      </div>
+
+      <div class="sheet hidden" id="sheet">
+        <section id="kpis" class="metrics"></section>
+        <main id="live" class="board"></main>
+        <section id="schedule" class="page hidden"></section>
+        <section id="cameras" class="page hidden"></section>
+        <section id="history" class="page hidden"></section>
+      </div>
+
+      <div class="notes-layer hidden" id="notes-layer">
+        <canvas id="notes-canvas"></canvas>
+        <article class="notes-card">
+          <header>
+            <p><i id="notes-api-led" class="led warn"></i> <span id="notes-api-label">Obsidian</span></p>
+            <h2>Knowledge twin</h2>
+            <p class="muted">Общие заметки площадки. Пишет смена и ИИ.</p>
+          </header>
+          <input id="notes-q" class="notes-input" type="search" placeholder="Поиск по хранилищу" />
+          <div id="notes-tree" class="notes-tree"></div>
+          <form id="notes-form">
+            <input id="note-author" class="notes-input" placeholder="Автор (виден всем)" />
+            <input id="note-name" class="notes-input" placeholder="Заголовок заметки" required />
+            <textarea id="note-body" class="notes-input" rows="5" placeholder="Текст. Можно [[Корпус A]] и #теги" required></textarea>
+            <div class="split">
+              <button class="hud-btn primary" type="submit">Опубликовать</button>
+              <button class="hud-btn" type="button" id="note-ai">ИИ: журнал</button>
+            </div>
+          </form>
+          <div class="note-read">
+            <h3 id="note-open-title">SITE-01</h3>
+            <p id="note-open-meta" class="muted">выберите узел</p>
+            <pre id="note-preview" class="note-preview"></pre>
+          </div>
+        </article>
+        <footer class="notes-analytics">
+          <section id="notes-kpis" class="metrics notes-kpis"></section>
+          <div class="notes-charts">
+            <svg id="chart-folder"></svg>
+            <svg id="chart-type"></svg>
+            <svg id="chart-day"></svg>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initTwin, initDroneHud } from "/static/twin.js?v=21";
+      import { initNotes } from "/static/notes.js?v=21";
+      initTwin(document.getElementById("twin-canvas"));
+      initDroneHud(document.getElementById("drone-canvas"));
+      window.__initNotes = () => initNotes(document.getElementById("notes-canvas"));
+    </script>
+    <script type="module" src="/static/app.js?v=21"></script>
+  </body>
+</html>
