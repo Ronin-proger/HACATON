@@ -48,10 +48,9 @@ glTF: Principled → `KHR_materials_clearcoat` / transmission на стекле.
 
 ## Сборка
 
-Нужен Blender 4.2+ в PATH.
+Нужен Blender 4.2+ в PATH. Команда запускается из корня репозитория.
 
 ```powershell
-cd C:\Users\N\HACATON
 blender --background --python tools\site_dcc\generate_site.py -- --export --render
 ```
 

@@ -31,10 +31,9 @@
 
 ## Быстрый старт (Windows)
 
-Нужны Python 3.11+ и Node.js 20+.
+Нужны Python 3.11+ и Node.js 20+. Команды ниже запускаются из корня репозитория.
 
 ```powershell
-cd C:\Users\N\HACATON
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r backend\requirements.txt
@@ -47,7 +46,7 @@ uvicorn app.main:app --app-dir backend --reload --port 8000
 В другом терминале:
 
 ```powershell
-cd C:\Users\N\HACATON\frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -61,7 +60,7 @@ npm run dev
 Опционально React-интерфейс (если установлен Node.js):
 
 ```powershell
-cd C:\Users\N\HACATON\frontend
+cd frontend
 npm install
 npm run dev
 ```
